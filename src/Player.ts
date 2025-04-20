@@ -1,6 +1,5 @@
 // Import enums ItemType and Direction
 import { ItemType } from "./ItemType";
-import { Direction } from "./Direction";
 
 /**
  * Represents a player object for a 2D array. Manages the player's position,
@@ -29,27 +28,6 @@ export class Player {
     collectItem(item: ItemType): void {
         if(!this.inventory.has(item)) {
             this.inventory.add(item);
-        }
-    }
-
-    /**
-    * Moves the player in a given direction. Does not handle move validation here.
-    * @param direction The direction to move.
-    */
-    move(direction: Direction): void {
-        switch (direction) {
-            case Direction.Up:
-                this.y--;
-                break;
-            case Direction.Down:
-                this.y++;
-                break;
-            case Direction.Left:
-                this.x--;
-                break;
-            case Direction.Right:
-                this.x++;
-                break;
         }
     }
 }
