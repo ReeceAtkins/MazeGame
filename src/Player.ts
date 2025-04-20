@@ -3,7 +3,7 @@ import { ItemType } from "./ItemType";
 
 /**
  * Represents a player object for a 2D array. Manages the player's position,
- * inventory, basic movement, and item collection.
+ * inventory, and item collection.
  */
 export class Player {
     x: number;

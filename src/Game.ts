@@ -3,7 +3,9 @@ import { ItemType } from "./ItemType";
 import { Direction } from "./Direction";
 import { Player } from "./Player";
 
-
+/**
+ * Represents a Game object. Handles the game grid, basic player movement, and the win condition.
+ */
 export class Game {
     grid: ItemType[][];
     player!: Player;
@@ -22,7 +24,7 @@ export class Game {
         const maxRows = Math.floor(Math.random() * 10) + 5;
         const maxColumns = Math.floor(Math.random() * 10) + 5;
 
-        // Initialize 2D array with ItemType None
+        // Initialize 2D array with ItemType.None
         this.grid = Array.from({ length: maxRows}, () =>
             Array.from({ length: Math.floor(Math.random() * maxColumns) + 1}, () => ItemType.None)
         );
@@ -110,7 +112,7 @@ export class Game {
     }
 
     /**
-     * Checks if the player's new current location contains a new item and adds it to player inventory.
+     * Checks if the player's new current location contains a new item and adds it to their inventory.
      */
     checkForItem(): void {
         const currentCellItem = this.grid[this.player.y][this.player.x];
@@ -131,7 +133,7 @@ export class Game {
     }
 
     /**
-     * Gets all collecitlbe ItemTypes.
+     * Gets all collectibles in enum ItemType, (everything except None).
      * @returns An array of collectible items.
      */
     getCollectibleItems(): ItemType[] {
