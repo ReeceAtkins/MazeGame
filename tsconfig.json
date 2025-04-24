@@ -1,20 +1,7 @@
 {
-    "compilerOptions": {
-        // The target version of JavaScript
-        "target": "ES2020",
-
-        // Where to output the compiled JavaScript files
-        "outDir": "js",
-
-        // Where the TypeScript source files are located
-        "rootDir": "src",
-
-        // Remove any comments from the TypeScript files
-        "removeComments": true,
-
-        // Enables type checking
-        "strict": true
-    },
-    // Includes all subfolders and files within the folder src
-    "include": ["src/**/*"]
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
 }
