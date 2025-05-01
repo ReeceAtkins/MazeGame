@@ -83,7 +83,7 @@ export class Game {
                 console.log(`Path generation failed after ${attempts} attempts! Using last attempt.`);
             }
         }
-        console.log(`Path generation SUCCESS after ${attempts} attempt!`);
+        //console.log(`Path generation SUCCESS after ${attempts} attempt!`);
     }
     
     /**
@@ -113,7 +113,6 @@ export class Game {
         // Try other directions
         const directions = Direction.getShuffleDirections();
         for (const dir of directions) {
-            //
             if (dir === lastDirection || dir === Direction.getOppositeDirection(dir)) continue;
 
             if (Math.random() < this.PATH.SPREAD_CHANCE) {
@@ -208,14 +207,15 @@ export class Game {
      */
     isValidMove(direction: Direction.DirectionType): boolean {
         const [dy, dx] = Direction.DirectionOffsets[direction]
-        const testX = this.player.x + dx;
-        const testY = this.player.y + dy;
+        const ny = this.player.y + dy;
 
-        return (testY >= 0 && 
-            testY < this.grid.length && 
-            testX >= 0 && 
-            testX < this.grid[testY].length) &&
-            this.grid[testY][testX] !== Item.ItemType.Blank;
+        if (ny < 0 || ny >= this.grid.length) return false;
+
+        const nx = this.calculateNewX(this.player.y, this.player.x, ny, dx);
+
+        return (nx >= 0 && 
+                nx < this.grid[ny].length) &&
+                this.grid[ny][nx] !== Item.ItemType.Blank;
     }
 
     /**
@@ -225,9 +225,22 @@ export class Game {
     move(direction: Direction.DirectionType): void {
         if (this.isValidMove(direction)) {
             const [dy, dx] = Direction.DirectionOffsets[direction];
-            this.player.x += dx;
-            this.player.y += dy;
+            const ny = this.player.y + dy;
+            const nx = this.calculateNewX(this.player.y, this.player.x, ny, dx);
+
+            this.player.y = ny;
+            this.player.x = nx;
+
             this.checkForItem();
+
+            if (this.winCondition()) {
+                console.log("**** WIN CONDITION ****");
+                console.log("          -_-          ");
+                console.log("I suppose you win for now...");
+            }
+        }
+        else {
+            console.log(`MOVED FAILD! Cannot move ${direction} from y = ${this.player.y}, x = ${this.player.x}`)
         }
     }
 
@@ -239,6 +252,7 @@ export class Game {
 
         if (currentCellItem !== Item.ItemType.None && !this.player.inventory.has(currentCellItem)) {
             this.player.collectItem(currentCellItem);
+            console.log(`Collected: ${currentCellItem}`)
             this.grid[this.player.y][this.player.x] = Item.ItemType.None;
         }
     }
