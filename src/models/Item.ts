@@ -2,6 +2,7 @@ export namespace Item {
     export enum ItemType {
         None = "None",
         Blank = "Blank",
+        Outside = "Outside",
         Lantern = "Lantern",
         Gloves = "Gloves",
         Chainsaw = "Chainsaw",
@@ -14,7 +15,7 @@ export namespace Item {
     */
     export function getCollectibleItems(): ItemType[] {
         return Object.values(ItemType).filter(
-            item => item !== ItemType.None && item !== ItemType.Blank
+            item => item !== ItemType.None && item !== ItemType.Blank && item !== ItemType.Outside
         );
     }
 }

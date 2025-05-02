@@ -222,7 +222,7 @@ export class Game {
     * Moves the player if the move is valid and collects any uncollected items in new cell.
     * @param direction The direction to move.
     */
-    move(direction: Direction.DirectionType): void {
+    move(direction: Direction.DirectionType): boolean {
         if (this.isValidMove(direction)) {
             const [dy, dx] = Direction.DirectionOffsets[direction];
             const ny = this.player.y + dy;
@@ -231,16 +231,11 @@ export class Game {
             this.player.y = ny;
             this.player.x = nx;
 
-            this.checkForItem();
-
-            if (this.winCondition()) {
-                console.log("**** WIN CONDITION ****");
-                console.log("          -_-          ");
-                console.log("I suppose you win for now...");
-            }
+            return true;
         }
         else {
-            console.log(`MOVED FAILD! Cannot move ${direction} from y = ${this.player.y}, x = ${this.player.x}`)
+            console.log(`MOVED FAILED! Cannot move ${direction} from y = ${this.player.y}, x = ${this.player.x}`)
+            return false;
         }
     }
 
@@ -346,5 +341,37 @@ export class Game {
                 }
             }
         }
+    }
+
+    /**
+     * Creates a limited view of this class's 2D array. Any cell outside of game.grid
+     * is given the type ItemType.Outside.
+     * @param radius The radius of the array around the player.
+     * @returns Limited sized grid centered around the player.
+     */
+    getVisibleGrid(radius: number):  Item.ItemType[][]{
+        const size = radius * 2 + 1;
+        const vGrid = Array.from({ length: size }, () => {
+            return Array.from({ length: size}, () => Item.ItemType.Outside)
+        });
+
+        for (let vRow = -radius; vRow <= radius; vRow++) {
+            const gameGridY = this.player.y + vRow;
+            
+            if (gameGridY < 0 || gameGridY >= this.grid.length) continue;
+    
+            for (let vCol = -radius; vCol <= radius; vCol++) {
+                const gameGridX = this.calculateNewX(this.player.y, this.player.x, gameGridY, vCol);
+    
+                // Calculate position in visibility grid
+                const vY = vRow + radius;
+                const vX = vCol + radius;
+    
+                if (gameGridX >= 0 && gameGridX < this.grid[gameGridY].length) {
+                    vGrid[vY][vX] = this.grid[gameGridY][gameGridX];
+                }
+            }
+        }
+        return vGrid;
     }
 }
