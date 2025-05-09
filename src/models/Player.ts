@@ -1,5 +1,5 @@
 // Import enums ItemType and Direction
-import { ItemType } from "./ItemType";
+import { Item } from "./Item";
 
 /**
  * Represents a player object for a 2D array. Manages the player's position,
@@ -8,7 +8,7 @@ import { ItemType } from "./ItemType";
 export class Player {
     x: number;
     y: number;
-    inventory: Set<ItemType>;
+    inventory: Set<Item.ItemType>;
 
     /**
      * Initializes a Player with a starting position and an empty inventory.
@@ -18,15 +18,15 @@ export class Player {
     constructor(startX: number, startY: number) {
         this.x = startX;
         this.y = startY;
-        this.inventory = new Set<ItemType>();
+        this.inventory = new Set<Item.ItemType>();
     }
 
     /**
      * Collects a given item if not already contained in inventory.
      * @param item The item to collect.
      */
-    collectItem(item: ItemType): void {
-        if(!this.inventory.has(item)) {
+    collectItem(item: Item.ItemType): void {
+        if (!this.inventory.has(item)) {
             this.inventory.add(item);
         }
     }
