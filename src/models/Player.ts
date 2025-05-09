@@ -26,7 +26,7 @@ export class Player {
      * @param item The item to collect.
      */
     collectItem(item: Item.ItemType): void {
-        if(!this.inventory.has(item)) {
+        if (!this.inventory.has(item)) {
             this.inventory.add(item);
         }
     }

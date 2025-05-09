@@ -1,4 +1,3 @@
-// Import enums ItemType and Direction, and Player
 import { Item } from "./Item";
 import { Direction } from "./Direction";
 import { Player } from "./Player";
@@ -14,23 +13,23 @@ export class Game {
     player!: Player;
 
     private readonly GRID = {
-        MIN_SIZE: 11,
-        MAX_SIZE: 17,
-        MIN_PATH_SIZE: 70
-    };
+        MIN_SIZE: 15,
+        MAX_SIZE: 25,
+        MIN_PATH_SIZE: 115
+    } as const;
 
     private readonly PATH = {
-        DEPTH: 100,
+        DEPTH: 110,
         SPREAD_CHANCE: 0.4,
         CONTINUE_DIRECTION_CHANCE: 0.85,
         MAX_WIDTH: 1
-    };
+    } as const;
 
-    private readonly MAX_ATTEMPTS = 500;
+    private readonly MAX_ATTEMPTS = 750;
 
     constructor() {
         this.grid = [];
-        this.createBoard();
+        this.generateBoard();
         this.setPlayer();
     }
 
@@ -38,7 +37,7 @@ export class Game {
      * Initializes the game grid by creating a randomized maze and placing collectible items.
      * Throws an error if collectible item placement fails.
      */
-    createBoard(): void {
+    generateBoard(): void {
 
         // Initialize 2D array with ItemType.Blank
         let maxRows = this.getRandomOddNumber(this.GRID.MIN_SIZE, this.GRID.MAX_SIZE);
@@ -49,7 +48,6 @@ export class Game {
 
         this.createPath();
 
-        // Randomly places each item within the grid
         if (!this.placeCollectibleItems()) {
             throw new Error("Failed to place all collectible items on the board");
         }
@@ -60,6 +58,7 @@ export class Game {
      */
     private createPath(): void {
         let pathCreated = false;
+        let pathSize = 0;
         let attempts = 0;
 
         while (!pathCreated && attempts <= this.MAX_ATTEMPTS) {
@@ -74,7 +73,7 @@ export class Game {
             const startX = Math.floor(Math.random() * this.grid[startY].length);
 
             if (this.grid[startY][startX] === Item.ItemType.Blank) {
-                const pathSize = this.spreadPath(startY, startX, this.PATH.DEPTH);
+                pathSize = this.spreadPath(startY, startX, this.PATH.DEPTH);
                 pathCreated = pathSize > Item.getCollectibleItems().length * 2 && pathSize > this.GRID.MIN_PATH_SIZE;
             }
             
@@ -83,7 +82,9 @@ export class Game {
                 console.log(`Path generation failed after ${attempts} attempts! Using last attempt.`);
             }
         }
-        //console.log(`Path generation SUCCESS after ${attempts} attempt!`);
+        if (pathCreated) {
+            console.log(`Grid with ${pathSize} path cells successfully created after ${attempts} attempts`);
+        }
     }
     
     /**
@@ -102,7 +103,11 @@ export class Game {
             this.grid[y][x] !== Item.ItemType.Blank
         ) return 0;
 
-        this.grid[y][x] = Item.ItemType.None;
+        if (this.countAdjacentPathCells(y, x) > this.PATH.MAX_WIDTH) {
+            return 0;
+        }
+
+        this.grid[y][x] = Item.ItemType.Path;
         let pathSize = 1;
 
         // Try continuing in last direction first
@@ -152,17 +157,14 @@ export class Game {
         const nx = this.calculateNewX(y, x, ny, dx);
         if (nx < 0 || nx >= this.grid[ny].length) return 0;
 
-        if (nx >= 0 && nx < this.grid[ny].length) {
-            return this.spreadPath(ny, nx, remaining - 1, dir);
-        }
-        return 0;
+        return this.spreadPath(ny, nx, remaining - 1, dir);
     }
 
     /**
-     * Counts the number of adjacent cells with ItemType None around a given position.
+     * Counts the number of adjacent cells with ItemType Path around a given position.
      * @param y The Y position.
      * @param x The X position.
-     * @returns The number of adjacent ItemType.None cells.
+     * @returns The number of adjacent ItemType.Path cells.
      */
     private countAdjacentPathCells(y: number, x: number): number {
         let count = 0;
@@ -173,7 +175,7 @@ export class Game {
 
             if (ny >= 0 && ny < this.grid.length && 
                 nx >= 0 && nx < this.grid[ny].length && 
-                this.grid[ny][nx] === Item.ItemType.None) {
+                this.grid[ny][nx] === Item.ItemType.Path) {
                 count++;
             }
         }
@@ -233,10 +235,7 @@ export class Game {
 
             return true;
         }
-        else {
-            console.log(`MOVED FAILED! Cannot move ${direction} from y = ${this.player.y}, x = ${this.player.x}`)
-            return false;
-        }
+        return false;
     }
 
     /**
@@ -245,10 +244,10 @@ export class Game {
     checkForItem(): void {
         const currentCellItem = this.grid[this.player.y][this.player.x];
 
-        if (currentCellItem !== Item.ItemType.None && !this.player.inventory.has(currentCellItem)) {
+        if (currentCellItem !== Item.ItemType.Path && !this.player.inventory.has(currentCellItem)) {
             this.player.collectItem(currentCellItem);
             console.log(`Collected: ${currentCellItem}`)
-            this.grid[this.player.y][this.player.x] = Item.ItemType.None;
+            this.grid[this.player.y][this.player.x] = Item.ItemType.Path;
         }
     }
 
@@ -267,7 +266,7 @@ export class Game {
      */
     private placeCollectibleItems(): boolean {
         const collectibleItems = Item.getCollectibleItems();
-        const availableCells = this.getNoneCells();
+        const availableCells = this.getRandomizedPathCells();
 
         if (availableCells.length < collectibleItems.length) {
             return false;
@@ -285,7 +284,7 @@ export class Game {
      * Places the player at a random valid location within grid.
      */
     private setPlayer(): void {
-        const availableCells = this.getNoneCells();
+        const availableCells = this.getRandomizedPathCells();
 
         if (availableCells.length === 0) {
             throw new Error("No valid starting positions for player");
@@ -302,20 +301,27 @@ export class Game {
     * @returns A random odd number between min and max
     */
     private getRandomOddNumber(min: number, max: number): number {
+        if (min % 2 === 0) {
+            min++;
+        }
+        if (max % 2 === 0) {
+            max--;
+        }
+
         let num = Math.floor(Math.random() * (max - min + 1)) + min;
         return num % 2 === 0 ? num + 1 : num;
     }
 
     /**
-     * Gets all available spots (ItemType.None) and shuffles them
+     * Gets all available ItemType.Path and shuffles them
      * @returns Shuffled array of [y, x] coordinates for available spots
      */
-    private getNoneCells(): [number, number][]{
+    private getRandomizedPathCells(): [number, number][] {
         const availableCells: [number, number][] = [];
 
         for (let y = 0; y < this.grid.length; y++) {
             for (let x = 0; x < this.grid[y].length; x++) {
-                if (this.grid[y][x] === Item.ItemType.None) {
+                if (this.grid[y][x] === Item.ItemType.Path) {
                     availableCells.push([y, x]);
                 }
             }
@@ -336,7 +342,7 @@ export class Game {
     private resetGrid(): void {
         for (let y = 0; y < this.grid.length; y++) {
             for (let x = 0; x < this.grid[y].length; x++) {
-                if (this.grid[y][x] === Item.ItemType.None) {
+                if (this.grid[y][x] === Item.ItemType.Path) {
                     this.grid[y][x] = Item.ItemType.Blank;
                 }
             }
@@ -344,15 +350,14 @@ export class Game {
     }
 
     /**
-     * Creates a limited view of this class's 2D array. Any cell outside of game.grid
-     * is given the type ItemType.Outside.
+     * Creates a limited view of this class's 2D array. Cells outside are left as Blank.
      * @param radius The radius of the array around the player.
      * @returns Limited sized grid centered around the player.
      */
-    getVisibleGrid(radius: number):  Item.ItemType[][]{
+    getVisibleGrid(radius: number):  Item.ItemType[][] {
         const size = radius * 2 + 1;
         const vGrid = Array.from({ length: size }, () => {
-            return Array.from({ length: size}, () => Item.ItemType.Outside)
+            return Array.from({ length: size}, () => Item.ItemType.Blank)
         });
 
         for (let vRow = -radius; vRow <= radius; vRow++) {

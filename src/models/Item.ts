@@ -1,8 +1,7 @@
 export namespace Item {
     export enum ItemType {
-        None = "None",
+        Path = "Path",
         Blank = "Blank",
-        Outside = "Outside",
         Lantern = "Lantern",
         Gloves = "Gloves",
         Chainsaw = "Chainsaw",
@@ -10,12 +9,12 @@ export namespace Item {
     }
 
     /**
-    * Gets all collectibles in enum ItemType, (everything except None and Blank).
+    * Gets all collectibles in enum ItemType, (everything except Path and Blank).
     * @returns An array of collectible items.
     */
     export function getCollectibleItems(): ItemType[] {
         return Object.values(ItemType).filter(
-            item => item !== ItemType.None && item !== ItemType.Blank && item !== ItemType.Outside
+            (item): item is ItemType => item !== ItemType.Path && item !== ItemType.Blank
         );
     }
 }
