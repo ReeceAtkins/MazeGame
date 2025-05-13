@@ -82,9 +82,6 @@ export class Game {
                 console.log(`Path generation failed after ${attempts} attempts! Using last attempt.`);
             }
         }
-        if (pathCreated) {
-            console.log(`Grid with ${pathSize} path cells successfully created after ${attempts} attempts`);
-        }
     }
     
     /**
